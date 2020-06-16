@@ -26,6 +26,7 @@ Module.register('MMM-InfluxChart',
     database: 'magicmirror',
     query: '',
     dateTimeFormat: 'HH:mm',
+    interval: 'hour',
     backgroundColor: 'rgba(255, 0, 200, 0.3)',
     borderColor: 'rgba(255, 0, 255, 0.6)',
     borderWidth: 1,
@@ -34,6 +35,8 @@ Module.register('MMM-InfluxChart',
     labelFontFamily: '"Roboto Condensed", Arial, Helvetica, sans-serif',
     labelLineHeight: '15px'
   },
+
+  currentValue: null,
 
   /**
    * Get the scripts for the module
@@ -63,6 +66,7 @@ Module.register('MMM-InfluxChart',
   {
     // Define the DateTime from luxon
     var DateTime = luxon.DateTime;
+    var current = DateTime.local().endOf(this.config.interval).plus({minutes: 1}).toFormat(this.config.dateTimeFormat);
 
     // Build the URL for InfluxDB query
     var url = this.config.url + 'query?db=' + encodeURIComponent(this.config.database) + '&q=' + encodeURIComponent(this.config.query);
@@ -70,6 +74,8 @@ Module.register('MMM-InfluxChart',
     // Execute the query and go through the result points for first serie
     var labels = [];
     var points = [];
+    var currentValue = null;
+    console.log(current);
     var dateTimeFormat = this.config.dateTimeFormat;
     $.ajax({url: url, async: false}).done(function(data)
     {
@@ -77,6 +83,10 @@ Module.register('MMM-InfluxChart',
       for (const value of serie.values)
       {
         let datetime = DateTime.fromISO(value[0]).toFormat(dateTimeFormat);
+        if (current == datetime)
+        {
+          currentValue = parseFloat(value[1]);
+        }
         labels.push(datetime);
         points.push(parseFloat(value[1]));
       }
@@ -85,8 +95,20 @@ Module.register('MMM-InfluxChart',
     // Return the data points and labels
     return {
       points: points,
-      labels: labels
+      labels: labels,
+      current: currentValue
     };
+  },
+
+  getHeader: function() {
+    if (this.currentValue != null && this.data.header !== undefined)
+    {
+      return this.data.header + " " + this.currentValue.toFixed(2) + " " + this.config.yLabel;
+    }
+    else
+    {
+      return this.data.header;
+    }
   },
 
   /**
@@ -107,6 +129,7 @@ Module.register('MMM-InfluxChart',
 
     // Load the serie data
     var seriedata = this.getData();
+    this.currentValue = seriedata.current;
 
     // Chart options
     var chartOptions = 
