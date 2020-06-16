@@ -65,6 +65,7 @@ modules: [
 | `database`        | string | The InfluxDB database to query             | `'magicmirror'`            |
 | `query`           | string | The query to run in the InfluxDB           | `''`                       |
 | `dateTimeFormat`  | string | The format for the X axis time stamps      | `'HH:mm'`                  |
+| `interval`        | string | The interval for data, used to determine current point | `hour`         |
 | `backgroundColor` | string | The chart background fill color, HTML code | `'rgba(255, 0, 200, 0.3)'` |
 | `borderColor`     | string | The chart line color, HTML code            | `'rgba(255, 0, 255, 0.6)'` |
 | `borderWidth`     | int    | The chart line width, in pixels            | `1`                        |
